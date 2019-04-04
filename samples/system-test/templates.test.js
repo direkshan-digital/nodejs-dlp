@@ -16,12 +16,11 @@
 'use strict';
 
 const {assert} = require('chai');
-const execa = require('execa');
+const {execSync} = require('child_process');
 const uuid = require('uuid');
 
 const cmd = 'node templates.js';
 const templateName = '';
-const exec = async cmd => (await execa.shell(cmd)).stdout;
 
 describe('templates', () => {
   const INFO_TYPE = 'PERSON_NAME';
@@ -37,7 +36,7 @@ describe('templates', () => {
 
   // create_inspect_template
   it('should create template', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} create -m ${MIN_LIKELIHOOD} -t ${INFO_TYPE} -f ${MAX_FINDINGS} -q ${INCLUDE_QUOTE} -d "${DISPLAY_NAME}" -i "${TEMPLATE_NAME}"`
     );
     assert.match(
@@ -47,20 +46,20 @@ describe('templates', () => {
   });
 
   it('should handle template creation errors', async () => {
-    const output = await exec(`${cmd} create -i invalid_template#id`);
+    const output = execSync(`${cmd} create -i invalid_template#id`);
     assert.match(output, /Error in createInspectTemplate/);
   });
 
   // list_inspect_templates
   it('should list templates', async () => {
-    const output = await exec(`${cmd} list`);
+    const output = execSync(`${cmd} list`);
     assert.match(output, new RegExp(`Template ${templateName}`));
     assert.match(output, /Created: \d{1,2}\/\d{1,2}\/\d{4}/);
     assert.match(output, /Updated: \d{1,2}\/\d{1,2}\/\d{4}/);
   });
 
   it('should pass creation settings to template', async () => {
-    const output = await exec(`${cmd} list`);
+    const output = execSync(`${cmd} list`);
     assert.strictEqual(output.includes(`Template ${fullTemplateName}`), true);
     assert.strictEqual(output.includes(`Display name: ${DISPLAY_NAME}`), true);
     assert.strictEqual(output.includes(`InfoTypes: ${INFO_TYPE}`), true);
@@ -80,7 +79,7 @@ describe('templates', () => {
 
   // delete_inspect_template
   it('should delete template', async () => {
-    const output = await exec(`${cmd} delete ${fullTemplateName}`);
+    const output = execSync(`${cmd} delete ${fullTemplateName}`);
     assert.strictEqual(
       output.includes(`Successfully deleted template ${fullTemplateName}.`),
       true
@@ -88,7 +87,7 @@ describe('templates', () => {
   });
 
   it('should handle template deletion errors', async () => {
-    const output = await exec(`${cmd} delete BAD_TEMPLATE`);
+    const output = execSync(`${cmd} delete BAD_TEMPLATE`);
     assert.match(output, /Error in deleteInspectTemplate/);
   });
 });

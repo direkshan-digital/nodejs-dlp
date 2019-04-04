@@ -16,7 +16,7 @@
 'use strict';
 
 const {assert} = require('chai');
-const execa = require('execa');
+const {execSync} = require('child_process');
 
 const cmd = `node jobs.js`;
 const badJobName = `projects/not-a-project/dlpJobs/i-123456789`;
@@ -26,7 +26,6 @@ const testTableProjectId = `bigquery-public-data`;
 const testDatasetId = `san_francisco`;
 const testTableId = `bikeshare_trips`;
 const testColumnName = `zip_code`;
-const exec = async cmd => (await execa.shell(cmd)).stdout;
 
 describe('jobs', () => {
   // Helper function for creating test jobs
@@ -68,7 +67,7 @@ describe('jobs', () => {
 
   // dlp_list_jobs
   it('should list jobs', async () => {
-    const output = await exec(`${cmd} list 'state=DONE'`);
+    const output = execSync(`${cmd} list 'state=DONE'`);
     assert.strictEqual(
       new RegExp(/Job projects\/(\w|-)+\/dlpJobs\/\w-\d+ status: DONE/).test(
         output
@@ -78,7 +77,7 @@ describe('jobs', () => {
   });
 
   it('should list jobs of a given type', async () => {
-    const output = await exec(`${cmd} list 'state=DONE' -t RISK_ANALYSIS_JOB`);
+    const output = execSync(`${cmd} list 'state=DONE' -t RISK_ANALYSIS_JOB`);
     assert.strictEqual(
       new RegExp(/Job projects\/(\w|-)+\/dlpJobs\/r-\d+ status: DONE/).test(
         output
@@ -88,18 +87,18 @@ describe('jobs', () => {
   });
 
   it('should handle job listing errors', async () => {
-    const output = await exec(`${cmd} list 'state=NOPE'`);
+    const output = execSync(`${cmd} list 'state=NOPE'`);
     assert.match(output, /Error in listJobs/);
   });
 
   // dlp_delete_job
   it('should delete job', async () => {
-    const output = await exec(`${cmd} delete ${testJobName}`);
+    const output = execSync(`${cmd} delete ${testJobName}`);
     assert.strictEqual(output, `Successfully deleted job ${testJobName}.`);
   });
 
   it('should handle job deletion errors', async () => {
-    const output = await exec(`${cmd} delete ${badJobName}`);
+    const output = execSync(`${cmd} delete ${badJobName}`);
     assert.match(output, /Error in deleteJob/);
   });
 });

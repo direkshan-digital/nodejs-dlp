@@ -18,16 +18,9 @@
 const path = require('path');
 const {assert} = require('chai');
 const fs = require('fs');
-const execa = require('execa');
+const {execSync} = require('child_process');
 
 const cmd = 'node deid.js';
-const exec = async cmd => {
-  const res = await execa.shell(cmd);
-  if (res.stderr) {
-    throw new Error(res.stderr);
-  }
-  return res.stdout;
-};
 const harmfulString = 'My SSN is 372819127';
 const harmlessString = 'My favorite color is blue';
 const surrogateType = 'SSN_TOKEN';
@@ -43,23 +36,23 @@ const dateFields = 'birth_date register_date';
 describe('deid', () => {
   // deidentify_masking
   it('should mask sensitive data in a string', async () => {
-    const output = await exec(`${cmd} deidMask "${harmfulString}" -m x -n 5`);
+    const output = execSync(`${cmd} deidMask "${harmfulString}" -m x -n 5`);
     assert.strictEqual(output, 'My SSN is xxxxx9127');
   });
 
   it('should ignore insensitive data when masking a string', async () => {
-    const output = await exec(`${cmd} deidMask "${harmlessString}"`);
+    const output = execSync(`${cmd} deidMask "${harmlessString}"`);
     assert.strictEqual(output, harmlessString);
   });
 
   it('should handle masking errors', async () => {
-    const output = await exec(`${cmd} deidMask "${harmfulString}" -n -1`);
+    const output = execSync(`${cmd} deidMask "${harmfulString}" -n -1`);
     assert.match(output, /Error in deidentifyWithMask/);
   });
 
   // deidentify_fpe
   it('should FPE encrypt sensitive data in a string', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidFpe "${harmfulString}" ${wrappedKey} ${keyName} -a NUMERIC`
     );
     assert.match(output, /My SSN is \d{9}/);
@@ -67,7 +60,7 @@ describe('deid', () => {
   });
 
   it('should use surrogate info types in FPE encryption', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidFpe "${harmfulString}" ${wrappedKey} ${keyName} -a NUMERIC -s ${surrogateType}`
     );
     assert.match(output, /My SSN is SSN_TOKEN\(9\):\d{9}/);
@@ -75,14 +68,14 @@ describe('deid', () => {
   });
 
   it('should ignore insensitive data when FPE encrypting a string', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidFpe "${harmlessString}" ${wrappedKey} ${keyName}`
     );
     assert.strictEqual(output, harmlessString);
   });
 
   it('should handle FPE encryption errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidFpe "${harmfulString}" ${wrappedKey} BAD_KEY_NAME`
     );
     assert.match(output, /Error in deidentifyWithFpe/);
@@ -91,14 +84,14 @@ describe('deid', () => {
   // reidentify_fpe
   it('should FPE decrypt surrogate-typed sensitive data in a string', async () => {
     assert.ok(labeledFPEString, 'Verify that FPE encryption succeeded.');
-    const output = await exec(
+    const output = execSync(
       `${cmd} reidFpe "${labeledFPEString}" ${surrogateType} ${wrappedKey} ${keyName} -a NUMERIC`
     );
     assert.strictEqual(output, harmfulString);
   });
 
   it('should handle FPE decryption errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} reidFpe "${harmfulString}" ${surrogateType} ${wrappedKey} BAD_KEY_NAME -a NUMERIC`
     );
     assert.match(output, /Error in reidentifyWithFpe/);
@@ -107,7 +100,7 @@ describe('deid', () => {
   // deidentify_date_shift
   it('should date-shift a CSV file', async () => {
     const outputCsvFile = 'dates.actual.csv';
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidDateShift "${csvFile}" "${outputCsvFile}" ${dateShiftAmount} ${dateShiftAmount} ${dateFields}`
     );
     assert.match(
@@ -124,7 +117,7 @@ describe('deid', () => {
     const outputCsvFile = 'dates-context.actual.csv';
     const expectedCsvFile =
       'system-test/resources/date-shift-context.expected.csv';
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidDateShift "${csvFile}" "${outputCsvFile}" ${dateShiftAmount} ${dateShiftAmount} ${dateFields} -f ${csvContextField} -n ${keyName} -w ${wrappedKey}`
     );
     assert.match(
@@ -138,14 +131,14 @@ describe('deid', () => {
   });
 
   it('should require all-or-none of {contextField, wrappedKey, keyName}', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidDateShift "${csvFile}" "${tempOutputFile}" ${dateShiftAmount} ${dateShiftAmount} ${dateFields} -f ${csvContextField} -n ${keyName}`
     );
     assert.match(output, /You must set either ALL or NONE of/);
   });
 
   it('should handle date-shift errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} deidDateShift "${csvFile}" "${tempOutputFile}" ${dateShiftAmount} ${dateShiftAmount}`
     );
     assert.match(output, /Error in deidentifyWithDateShift/);

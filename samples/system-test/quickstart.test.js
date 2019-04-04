@@ -16,13 +16,12 @@
 'use strict';
 
 const {assert} = require('chai');
-const execa = require('execa');
+const {execSync} = require('child_process');
 
-const exec = async cmd => (await execa.shell(cmd)).stdout;
 
 describe('quickstart', () => {
   it('should run', async () => {
-    const output = await exec('node quickstart.js');
+    const output = execSync('node quickstart.js');
     assert.match(output, /Info type: PERSON_NAME/);
   });
 });

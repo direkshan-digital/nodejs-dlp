@@ -17,14 +17,13 @@
 
 const {assert} = require('chai');
 const fs = require('fs');
-const execa = require('execa');
+const {execSync} = require('child_process');
 const {PNG} = require('pngjs');
 const pixelmatch = require('pixelmatch');
 
 const cmd = 'node redact.js';
 const testImage = 'resources/test.png';
 const testResourcePath = 'system-test/resources';
-const exec = async cmd => (await execa.shell(cmd)).stdout;
 
 async function readImage(filePath) {
   return new Promise((resolve, reject) => {
@@ -55,21 +54,21 @@ async function getImageDiffPercentage(image1Path, image2Path) {
 describe('redact', () => {
   // redact_text
   it('should redact a single sensitive data type from a string', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} string "My email is jenny@example.com" -t EMAIL_ADDRESS`
     );
     assert.match(output, /My email is \[EMAIL_ADDRESS\]/);
   });
 
   it('should redact multiple sensitive data types from a string', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} string "I am 29 years old and my email is jenny@example.com" -t EMAIL_ADDRESS AGE`
     );
     assert.match(output, /I am \[AGE\] and my email is \[EMAIL_ADDRESS\]/);
   });
 
   it('should handle string with no sensitive data', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} string "No sensitive data to redact here" -t EMAIL_ADDRESS AGE`
     );
     assert.match(output, /No sensitive data to redact here/);
@@ -78,7 +77,7 @@ describe('redact', () => {
   // redact_image
   it('should redact a single sensitive data type from an image', async () => {
     const testName = `redact-single-type`;
-    const output = await exec(
+    const output = execSync(
       `${cmd} image ${testImage} ${testName}.actual.png -t PHONE_NUMBER`
     );
     assert.match(output, /Saved image redaction results to path/);
@@ -91,7 +90,7 @@ describe('redact', () => {
 
   it('should redact multiple sensitive data types from an image', async () => {
     const testName = `redact-multiple-types`;
-    const output = await exec(
+    const output = execSync(
       `${cmd} image ${testImage} ${testName}.actual.png -t PHONE_NUMBER EMAIL_ADDRESS`
     );
     assert.match(output, /Saved image redaction results to path/);
@@ -103,14 +102,14 @@ describe('redact', () => {
   });
 
   it('should report info type errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} string "My email is jenny@example.com" -t NONEXISTENT`
     );
     assert.match(output, /Error in deidentifyContent/);
   });
 
   it('should report image redaction handling errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} image ${testImage} output.png -t BAD_TYPE`
     );
     assert.match(output, /Error in redactImage/);

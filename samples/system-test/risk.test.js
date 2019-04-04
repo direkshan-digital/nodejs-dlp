@@ -18,7 +18,7 @@
 const {assert} = require('chai');
 const uuid = require('uuid');
 const {PubSub} = require(`@google-cloud/pubsub`);
-const execa = require('execa');
+const {execSync} = require('child_process');
 
 const cmd = 'node risk.js';
 const dataset = 'integration_tests_dlp';
@@ -28,7 +28,6 @@ const numericField = 'Age';
 const stringBooleanField = 'Gender';
 const testProjectId = process.env.GCLOUD_PROJECT;
 const pubsub = new PubSub();
-const exec = async cmd => (await execa.shell(cmd)).stdout;
 
 describe('risk', () => {
   // Create new custom topic/subscription
@@ -48,7 +47,7 @@ describe('risk', () => {
 
   // numericalRiskAnalysis
   it('should perform numerical risk analysis', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} numerical ${dataset} harmful ${numericField} ${topicName} ${subscriptionName} -p ${testProjectId}`
     );
     assert.match(output, /Value at 0% quantile: \d{2}/);
@@ -56,7 +55,7 @@ describe('risk', () => {
   });
 
   it('should handle numerical risk analysis errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} numerical ${dataset} nonexistent ${numericField} ${topicName} ${subscriptionName} -p ${testProjectId}`
     );
     assert.match(output, /Error in numericalRiskAnalysis/);
@@ -64,21 +63,21 @@ describe('risk', () => {
 
   // categoricalRiskAnalysis
   it('should perform categorical risk analysis on a string field', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} categorical ${dataset} harmful ${uniqueField} ${topicName} ${subscriptionName} -p ${testProjectId}`
     );
     assert.match(output, /Most common value occurs \d time\(s\)/);
   });
 
   it('should perform categorical risk analysis on a number field', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} categorical ${dataset} harmful ${numericField} ${topicName} ${subscriptionName} -p ${testProjectId}`
     );
     assert.match(output, /Most common value occurs \d time\(s\)/);
   });
 
   it('should handle categorical risk analysis errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} categorical ${dataset} nonexistent ${uniqueField} ${topicName} ${subscriptionName} -p ${testProjectId}`
     );
     assert.match(output, /Error in categoricalRiskAnalysis/);
@@ -86,7 +85,7 @@ describe('risk', () => {
 
   // kAnonymityAnalysis
   it('should perform k-anonymity analysis on a single field', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} kAnonymity ${dataset} harmful ${topicName} ${subscriptionName} ${numericField} -p ${testProjectId}`
     );
     assert.match(output, /Quasi-ID values: \{\d{2}\}/);
@@ -94,7 +93,7 @@ describe('risk', () => {
   });
 
   it('should perform k-anonymity analysis on multiple fields', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} kAnonymity ${dataset} harmful ${topicName} ${subscriptionName} ${numericField} ${repeatedField} -p ${testProjectId}`
     );
     assert.match(output, /Quasi-ID values: \{\d{2}, \d{4} \d{4} \d{4} \d{4}\}/);
@@ -102,7 +101,7 @@ describe('risk', () => {
   });
 
   it('should handle k-anonymity analysis errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} kAnonymity ${dataset} nonexistent ${topicName} ${subscriptionName} ${numericField} -p ${testProjectId}`
     );
     assert.match(output, /Error in kAnonymityAnalysis/);
@@ -110,7 +109,7 @@ describe('risk', () => {
 
   // kMapAnalysis
   it('should perform k-map analysis on a single field', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} kMap ${dataset} harmful ${topicName} ${subscriptionName} ${numericField} -t AGE -p ${testProjectId}`
     );
     assert.match(output, /Anonymity range: \[\d+, \d+\]/);
@@ -119,7 +118,7 @@ describe('risk', () => {
   });
 
   it('should perform k-map analysis on multiple fields', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} kMap ${dataset} harmful ${topicName} ${subscriptionName} ${numericField} ${stringBooleanField} -t AGE GENDER -p ${testProjectId}`
     );
     assert.match(output, /Anonymity range: \[\d+, \d+\]/);
@@ -128,7 +127,7 @@ describe('risk', () => {
   });
 
   it('should handle k-map analysis errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} kMap ${dataset} nonexistent ${topicName} ${subscriptionName} ${numericField} -t AGE -p ${testProjectId}`
     );
     assert.match(output, /Error in kMapEstimationAnalysis/);
@@ -146,7 +145,7 @@ describe('risk', () => {
 
   // lDiversityAnalysis
   it('should perform l-diversity analysis on a single field', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} lDiversity ${dataset} harmful ${uniqueField} ${topicName} ${subscriptionName} ${numericField} -p ${testProjectId}`
     );
     assert.match(output, /Quasi-ID values: \{\d{2}\}/);
@@ -155,7 +154,7 @@ describe('risk', () => {
   });
 
   it('should perform l-diversity analysis on multiple fields', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} lDiversity ${dataset} harmful ${uniqueField} ${topicName} ${subscriptionName} ${numericField} ${repeatedField} -p ${testProjectId}`
     );
     assert.match(output, /Quasi-ID values: \{\d{2}, \d{4} \d{4} \d{4} \d{4}\}/);
@@ -164,7 +163,7 @@ describe('risk', () => {
   });
 
   it('should handle l-diversity analysis errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} lDiversity ${dataset} nonexistent ${topicName} ${subscriptionName} ${numericField} -p ${testProjectId}`
     );
     assert.match(output, /Error in lDiversityAnalysis/);

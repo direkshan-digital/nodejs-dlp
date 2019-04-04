@@ -16,7 +16,7 @@
 'use strict';
 
 const {assert} = require('chai');
-const execa = require('execa');
+const {execSync} = require('child_process');
 const uuid = require('uuid');
 
 describe('triggers', () => {
@@ -30,10 +30,9 @@ describe('triggers', () => {
   const minLikelihood = 'VERY_LIKELY';
   const maxFindings = 5;
   const bucketName = process.env.BUCKET_NAME;
-  const exec = async cmd => (await execa.shell(cmd)).stdout;
 
   it('should create a trigger', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} create ${bucketName} 1 -n ${triggerName} --autoPopulateTimespan \
       -m ${minLikelihood} -t ${infoType} -f ${maxFindings} -d "${triggerDisplayName}" -s "${triggerDescription}"`
     );
@@ -44,7 +43,7 @@ describe('triggers', () => {
   });
 
   it('should list triggers', async () => {
-    const output = await exec(`${cmd} list`);
+    const output = execSync(`${cmd} list`);
     assert.match(output, new RegExp(`Trigger ${fullTriggerName}`), true);
     assert.match(output, new RegExp(`Display Name: ${triggerDisplayName}`));
     assert.match(output, new RegExp(`Description: ${triggerDescription}`));
@@ -55,7 +54,7 @@ describe('triggers', () => {
   });
 
   it('should delete a trigger', async () => {
-    const output = await exec(`${cmd} delete ${fullTriggerName}`);
+    const output = execSync(`${cmd} delete ${fullTriggerName}`);
     assert.match(
       output,
       new RegExp(`Successfully deleted trigger ${fullTriggerName}.`)
@@ -63,14 +62,14 @@ describe('triggers', () => {
   });
 
   it('should handle trigger creation errors', async () => {
-    const output = await exec(
+    const output = execSync(
       `${cmd} create ${bucketName} 1 -n "@@@@@" -m ${minLikelihood} -t ${infoType} -f ${maxFindings}`
     );
     assert.match(output, /Error in createTrigger/);
   });
 
   it('should handle trigger deletion errors', async () => {
-    const output = await exec(`${cmd} delete bad-trigger-path`);
+    const output = execSync(`${cmd} delete bad-trigger-path`);
     assert.match(output, /Error in deleteTrigger/);
   });
 });
