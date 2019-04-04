@@ -109,9 +109,7 @@ describe('redact', () => {
   });
 
   it('should report image redaction handling errors', async () => {
-    const output = execSync(
-      `${cmd} image ${testImage} output.png -t BAD_TYPE`
-    );
+    const output = execSync(`${cmd} image ${testImage} output.png -t BAD_TYPE`);
     assert.match(output, /Error in redactImage/);
   });
 });

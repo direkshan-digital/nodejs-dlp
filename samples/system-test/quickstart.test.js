@@ -18,7 +18,6 @@
 const {assert} = require('chai');
 const {execSync} = require('child_process');
 
-
 describe('quickstart', () => {
   it('should run', async () => {
     const output = execSync('node quickstart.js');
