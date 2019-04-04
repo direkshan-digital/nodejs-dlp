@@ -17,9 +17,11 @@
 
 const {assert} = require('chai');
 const fs = require('fs');
-const {execSync} = require('child_process');
+const cp = require('child_process');
 const {PNG} = require('pngjs');
 const pixelmatch = require('pixelmatch');
+
+const execSync = (cmd) => cp.execSync(cmd, {encoding: 'utf-8'});
 
 const cmd = 'node redact.js';
 const testImage = 'resources/test.png';
