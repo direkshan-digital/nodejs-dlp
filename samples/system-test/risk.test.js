@@ -133,8 +133,8 @@ describe('risk', () => {
     assert.match(output, /Error in kMapEstimationAnalysis/);
   });
 
-  it('should check that numbers of quasi-ids and info types are equal', async () => {
-    const {stderr} = await execa.shell(
+  it('should check that numbers of quasi-ids and info types are equal', () => {
+    const {stderr} = execSync(
       `${cmd} kMap ${dataset} nonexistent ${topicName} ${subscriptionName} ${numericField} -t AGE GENDER -p ${testProjectId}`
     );
     assert.match(
