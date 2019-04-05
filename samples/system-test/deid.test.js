@@ -39,12 +39,12 @@ describe('deid', () => {
   // deidentify_masking
   it('should mask sensitive data in a string', async () => {
     const output = execSync(`${cmd} deidMask "${harmfulString}" -m x -n 5`);
-    assert.strictEqual(output, 'My SSN is xxxxx9127');
+    assert.include(output, 'My SSN is xxxxx9127');
   });
 
   it('should ignore insensitive data when masking a string', async () => {
     const output = execSync(`${cmd} deidMask "${harmlessString}"`);
-    assert.strictEqual(output, harmlessString);
+    assert.include(output, harmlessString);
   });
 
   it('should handle masking errors', async () => {
@@ -58,7 +58,7 @@ describe('deid', () => {
       `${cmd} deidFpe "${harmfulString}" ${wrappedKey} ${keyName} -a NUMERIC`
     );
     assert.match(output, /My SSN is \d{9}/);
-    assert.notStrictEqual(output, harmfulString);
+    assert.notInclude(output, harmfulString);
   });
 
   it('should use surrogate info types in FPE encryption', async () => {
@@ -73,7 +73,7 @@ describe('deid', () => {
     const output = execSync(
       `${cmd} deidFpe "${harmlessString}" ${wrappedKey} ${keyName}`
     );
-    assert.strictEqual(output, harmlessString);
+    assert.include(output, harmlessString);
   });
 
   it('should handle FPE encryption errors', async () => {
@@ -89,7 +89,7 @@ describe('deid', () => {
     const output = execSync(
       `${cmd} reidFpe "${labeledFPEString}" ${surrogateType} ${wrappedKey} ${keyName} -a NUMERIC`
     );
-    assert.strictEqual(output, harmfulString);
+    assert.include(output, harmfulString);
   });
 
   it('should handle FPE decryption errors', async () => {
@@ -109,7 +109,7 @@ describe('deid', () => {
       output,
       new RegExp(`Successfully saved date-shift output to ${outputCsvFile}`)
     );
-    assert.notStrictEqual(
+    assert.notInclude(
       fs.readFileSync(outputCsvFile).toString(),
       fs.readFileSync(csvFile).toString()
     );
@@ -126,7 +126,7 @@ describe('deid', () => {
       output,
       new RegExp(`Successfully saved date-shift output to ${outputCsvFile}`)
     );
-    assert.strictEqual(
+    assert.include(
       fs.readFileSync(outputCsvFile).toString(),
       fs.readFileSync(expectedCsvFile).toString()
     );
