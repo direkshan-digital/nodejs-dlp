@@ -20,7 +20,7 @@ const {assert} = require('chai');
 const fs = require('fs');
 const cp = require('child_process');
 
-const execSync = (cmd) => cp.execSync(cmd, {encoding: 'utf-8'});
+const execSync = cmd => cp.execSync(cmd, {encoding: 'utf-8'});
 
 const cmd = 'node deid.js';
 const harmfulString = 'My SSN is 372819127';

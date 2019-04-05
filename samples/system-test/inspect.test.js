@@ -21,7 +21,7 @@ const {PubSub} = require('@google-cloud/pubsub');
 const pubsub = new PubSub();
 const uuid = require('uuid');
 
-const execSync = (cmd) => cp.execSync(cmd, {encoding: 'utf-8'});
+const execSync = cmd => cp.execSync(cmd, {encoding: 'utf-8'});
 
 const cmd = 'node inspect.js';
 const bucket = 'nodejs-docs-samples-dlp';
